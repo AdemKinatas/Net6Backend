@@ -10,8 +10,4 @@
     <ProjectReference Include="..\DataAccess\DataAccess.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="ValidationRules\FluentValidation\" />
-  </ItemGroup>
-
 </Project>
