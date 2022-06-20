@@ -18,7 +18,7 @@ builder.Host.UseServiceProviderFactory(new AutofacServiceProviderFactory())
 
 builder.Services.AddControllers();
 
-//Cors Ðplicy
+//Cors policy
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowOrigin",
