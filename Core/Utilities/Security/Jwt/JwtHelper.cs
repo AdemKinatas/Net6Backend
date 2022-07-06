@@ -9,6 +9,7 @@ using Core.Entities.Concrete;
 using Core.Extensions;
 using Core.Utilities.Security.Encyption;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 
 namespace Core.Utilities.Security.Jwt
@@ -17,14 +18,17 @@ namespace Core.Utilities.Security.Jwt
     {
         public IConfiguration Configuration { get; }
         private DateTime _accessTokenExpiration;
-        public JwtHelper(IConfiguration configuration)
+        private TokenOptions _tokenOptions;
+        
+        public JwtHelper(IConfiguration configuration, IOptions<TokenOptions> tokenOptions)
         {
             Configuration = configuration;
+            _tokenOptions = tokenOptions.Value;
         }
         public AccessToken CreateToken(User user, List<OperationClaim> operationClaims)
         {
-            _accessTokenExpiration = DateTime.Now.AddMinutes(Convert.ToDouble(Configuration["TokenOptions:AccessTokenExpiration"]));
-            var securityKey = SecurityKeyHelper.CreateSecurityKey(Configuration["TokenOptions:SecurityKey"]);
+            _accessTokenExpiration = DateTime.Now.AddMinutes(_tokenOptions.AccessTokenExpiration);
+            var securityKey = SecurityKeyHelper.CreateSecurityKey(_tokenOptions.SecurityKey);
             var signingCredentials = SigningCredentialsHelper.CreateSigningCredentials(securityKey);
             var jwt = CreateJwtSecurityToken(user, signingCredentials, operationClaims);
             var jwtSecurityTokenHandler = new JwtSecurityTokenHandler();
@@ -43,8 +47,8 @@ namespace Core.Utilities.Security.Jwt
             SigningCredentials signingCredentials, List<OperationClaim> operationClaims)
         {
             var jwt = new JwtSecurityToken(
-                issuer: Configuration["TokenOptions:Issuer"],
-                audience: Configuration["TokenOptions:Audience"],
+                issuer: _tokenOptions.Issuer,
+                audience: _tokenOptions.Audience,
                 expires:_accessTokenExpiration,
                 notBefore:DateTime.Now,
                 claims: SetClaims(user,operationClaims),
