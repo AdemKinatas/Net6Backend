@@ -1,10 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IdentityModel.Tokens.Jwt;
-using System.Linq;
+﻿using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Security.Cryptography;
-using System.Text;
 using Core.Entities.Concrete;
 using Core.Extensions;
 using Core.Utilities.Security.Encyption;
@@ -20,17 +16,17 @@ namespace Core.Utilities.Security.Jwt
         private DateTime _accessTokenExpiration;
         private TokenOptions _tokenOptions;
         
-        public JwtHelper(IConfiguration configuration, IOptions<TokenOptions> tokenOptions)
+        public JwtHelper(IConfiguration configuration)
         {
             Configuration = configuration;
-            _tokenOptions = tokenOptions.Value;
+            _tokenOptions = Configuration.GetSection("Tokenoptions").Get<TokenOptions>();
         }
         public AccessToken CreateToken(User user, List<OperationClaim> operationClaims)
-        {
+        {            
             _accessTokenExpiration = DateTime.Now.AddMinutes(_tokenOptions.AccessTokenExpiration);
             var securityKey = SecurityKeyHelper.CreateSecurityKey(_tokenOptions.SecurityKey);
             var signingCredentials = SigningCredentialsHelper.CreateSigningCredentials(securityKey);
-            var jwt = CreateJwtSecurityToken(user, signingCredentials, operationClaims);
+            var jwt = CreateJwtSecurityToken(_tokenOptions, user, signingCredentials, operationClaims);
             var jwtSecurityTokenHandler = new JwtSecurityTokenHandler();
             var token = jwtSecurityTokenHandler.WriteToken(jwt);
 
@@ -43,12 +39,12 @@ namespace Core.Utilities.Security.Jwt
 
         }
 
-        public JwtSecurityToken CreateJwtSecurityToken(User user, 
+        public JwtSecurityToken CreateJwtSecurityToken(TokenOptions tokenOptions, User user, 
             SigningCredentials signingCredentials, List<OperationClaim> operationClaims)
         {
             var jwt = new JwtSecurityToken(
-                issuer: _tokenOptions.Issuer,
-                audience: _tokenOptions.Audience,
+                issuer: tokenOptions.Issuer,
+                audience: tokenOptions.Audience,
                 expires:_accessTokenExpiration,
                 notBefore:DateTime.Now,
                 claims: SetClaims(user,operationClaims),

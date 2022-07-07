@@ -17,8 +17,6 @@ builder.Host.UseServiceProviderFactory(new AutofacServiceProviderFactory())
 
 builder.Services.AddControllers();
 
-builder.Services.Configure<TokenOptions>(builder.Configuration.GetSection("TokenOptions"));
-
 var tokenOptions = builder.Configuration.GetSection("TokenOptions").Get<TokenOptions>();
 
 //Cors policy
